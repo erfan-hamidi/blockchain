@@ -119,63 +119,54 @@ root.title("Blockchain Simulation")
 root.configure(background="#f0f0f0")
 
 # Create styled frames
-input_frame = ttk.Frame(root, padding="20", style="Input.TFrame")
+input_frame = ttk.Frame(root, padding="20")
 input_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
-output_frame = ttk.Frame(root, padding="20", style="Output.TFrame")
+output_frame = ttk.Frame(root, padding="20")
 output_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew")
 
 # Input widgets
-sender_label = ttk.Label(input_frame, text="Sender:", style="Input.TLabel")
+sender_label = ttk.Label(input_frame, text="Sender:")
 sender_label.grid(row=0, column=0, padx=5, pady=5, sticky="e")
-sender_entry = ttk.Entry(input_frame, style="Input.TEntry")
+sender_entry = ttk.Entry(input_frame)
 sender_entry.grid(row=0, column=1, padx=5, pady=5)
 
-receiver_label = ttk.Label(input_frame, text="Receiver:", style="Input.TLabel")
+receiver_label = ttk.Label(input_frame, text="Receiver:")
 receiver_label.grid(row=1, column=0, padx=5, pady=5, sticky="e")
-receiver_entry = ttk.Entry(input_frame, style="Input.TEntry")
+receiver_entry = ttk.Entry(input_frame)
 receiver_entry.grid(row=1, column=1, padx=5, pady=5)
 
-text_label = ttk.Label(input_frame, text="Text:", style="Input.TLabel")
+text_label = ttk.Label(input_frame, text="Text:")
 text_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
-text_entry = ttk.Entry(input_frame, style="Input.TEntry")
+text_entry = ttk.Entry(input_frame)
 text_entry.grid(row=2, column=1, padx=5, pady=5)
 
-submit_button = ttk.Button(input_frame, text="Submit Transaction", command=submit_transaction, style="Input.TButton")
+submit_button = ttk.Button(input_frame, text="Submit Transaction", command=submit_transaction)
 submit_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
-hash_label = ttk.Label(input_frame, text="Transaction Hash:", style="Input.TLabel")
+hash_label = ttk.Label(input_frame, text="Transaction Hash:")
 hash_label.grid(row=4, column=0, padx=5, pady=5, sticky="e")
-hash_entry = ttk.Entry(input_frame, style="Input.TEntry")
+hash_entry = ttk.Entry(input_frame)
 hash_entry.grid(row=4, column=1, padx=5, pady=5)
 
-retrieve_button = ttk.Button(input_frame, text="Retrieve Transaction", command=retrieve_transaction, style="Input.TButton")
+retrieve_button = ttk.Button(input_frame, text="Retrieve Transaction", command=retrieve_transaction)
 retrieve_button.grid(row=5, column=0, columnspan=2, padx=5, pady=5)
 
 # Output widgets
-status_label = ttk.Label(output_frame, text="", style="Output.TLabel")
+
+
+status_label = ttk.Label(output_frame, text="")
 status_label.grid(row=0, column=0, columnspan=2, padx=5, pady=5)
 
-retrieved_text_label = ttk.Label(output_frame, text="", style="Output.TLabel")
+retrieved_text_label = ttk.Label(output_frame, text="")
 retrieved_text_label.grid(row=1, column=0, columnspan=2, padx=5, pady=5)
 
-blocks_text = tk.Text(output_frame, width=40, height=10, bg="#ffffff", fg="#000000", font=("Arial", 10))
+blocks_text = tk.Text(output_frame, width=40, height=10)
 blocks_text.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
-display_blocks_button = ttk.Button(output_frame, text="Display Blocks", command=display_blocks, style="Output.TButton")
+display_blocks_button = ttk.Button(output_frame, text="Display Blocks", command=display_blocks)
 display_blocks_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
-# Style configuration
-root.style = ttk.Style()
-root.style.configure("Input.TFrame", background="#d9d9d9")
-root.style.configure("Input.TLabel", background="#d9d9d9", foreground="#000000")
-root.style.configure("Input.TEntry", background="#ffffff", foreground="#000000")
-root.style.configure("Input.TButton", background="#4caf50", foreground="#ffffff", font=("Arial", 10))
-root.style.map("Input.TButton", background=[("active", "#45a049")])
-
-root.style.configure("Output.TFrame", background="#d9d9d9")
-root.style.configure("Output.TLabel", background="#d9d9d9", foreground="#000000")
-root.style.configure("Output.TButton", background="#2196f3", foreground="#ffffff", font=("Arial", 10))
-root.style.map("Output.TButton", background=[("active", "#1e88e5")])
+root.mainloop()
 
 root.mainloop()

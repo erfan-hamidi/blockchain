@@ -1,0 +1,4 @@
+{"index": 1, "transactions": [[{"sender": "er", "receiver": "sa", "amount": "12"}], []], "timestamp": 1710321877.8504264, "previous_hash": null, "nonce": 2}
+{"index": 2, "transactions": [[{"sender": "er", "receiver": "sa", "amount": "12"}], []], "timestamp": 1710321877.8514295, "previous_hash": "0643ad3e9e7cb1fe6122509a665849494f806e2c4d3085f61040d277cb1d07df", "nonce": 46}
+{"index": 3, "transactions": [[{"sender": "er", "receiver": "sa", "amount": "12"}], []], "timestamp": 1710321951.9923198, "previous_hash": "038dfdb33151d5297e48a42a5a765cf283dd6bbadf96255a40f6c080e31ed9ac", "nonce": 6}
+{"index": 4, "transactions": [[{"sender": "er", "receiver": "sa", "amount": "12"}], []], "timestamp": 1710321951.9933138, "previous_hash": "06eb2006ccd5e3e8c53657ba32a7ccdf071ac0b4bc0f1487d77814a57660b8f8", "nonce": 2}
