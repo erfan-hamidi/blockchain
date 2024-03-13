@@ -1,4 +1,5 @@
-
+from Crypto.Hash import SHA256
+from Crypto.Signature import pkcs1_15
 import json
 import time
 from block import Block
@@ -28,7 +29,9 @@ def calculate_difficulty(target_block_time, current_block_time):
 class Miner:
     def __init__(self, name):
         self.name = name
-        self.blocks = []  # List of mined blocks
+        self.blockchain = []
+        self.memory_pool = []
+        self.peers = []
 
     def mine_block(self, index, transactions, previous_hash, block_time):
         timestamp = time.time()
@@ -49,3 +52,56 @@ class Miner:
                 self.blocks.append(block)
                 return block
             nonce += 1
+
+    def receive_transaction(self, transaction):
+        # Validate transaction
+        if self.validate_transaction(transaction):
+            self.add_transaction_to_memory_pool(transaction)
+            self.gossip_transaction(transaction)
+
+    def receive_block(self, block):
+        # Validate block
+        if self.validate_block(block):
+            self.blockchain.append(block)
+            self.memory_pool = [transaction for transaction in self.memory_pool if transaction not in block.transactions]
+            self.gossip_block(block)
+
+
+    def verify_signature(self, transaction):
+        # Get the public key of the sender
+        sender_public_key = self.transaction.publickey_sender
+
+        # Construct the message to be hashed
+        message = json.dumps(transaction, sort_keys=True).encode()
+
+        # Calculate the SHA256 hash of the message
+        hash_obj = SHA256.new(message)
+
+        # Extract the signature from the transaction
+        signature = transaction['signature']
+
+        # Verify the signature using the public key and hash
+        try:
+            pkcs1_15.new(sender_public_key).verify(hash_obj, signature)
+            return True  # Signature verification successful
+        except (ValueError, TypeError, pkcs1_15.pkcs1_15Error):
+            return False  # Signature verification failed
+
+
+    def validate_transaction(self, transaction):
+        # Check if required fields are present in the transaction
+        if 'sender' not in transaction or 'receiver' not in transaction or 'text' not in transaction:
+            return False
+        
+        # Example: Check if the sender has sufficient balance
+        sender_balance = self.calculate_balance(transaction['sender'])
+        if sender_balance < transaction['text']:
+            return False
+
+        # Example: Check if transaction signature is valid
+        if not self.verify_signature(transaction):
+            return False
+
+        # Additional validation rules can be added here
+
+        return True
