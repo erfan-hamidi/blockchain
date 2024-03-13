@@ -1,94 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Signature import pkcs1_15
-from Crypto.PublicKey import ECC
-from Crypto.Signature import DSS
-import hashlib
 import json
 import time
+from block import Block
+from user import User
+from miner import Miner
 
-class Block:
-    def __init__(self, index, transactions, timestamp, previous_hash, nonce, miner, difficulty):
-        self.index = index
-        self.transactions = transactions
-        self.timestamp = timestamp
-        self.previous_hash = previous_hash
-        self.nonce = nonce
-        self.miner = miner
-        self.difficulty = difficulty
-        # Secure block hash generation using SHA-256 and other header information
-        data = str(self)
-        self.hash = hashlib.sha256(data.encode()).hexdigest()
-    def __str__(self):
-        return f"""
-        Block {self.index}
-        Previous Hash: {self.previous_hash}
-        Timestamp: {self.timestamp}
-        Difficulty: {self.difficulty}
-        Nonce: {self.nonce}
-        miner: {self.miner}
-        Transactions:
-            {', '.join([str(tx) for tx in self.transactions])}
-        """
 
-class Miner:
-    def __init__(self, name):
-        self.name = name
-        self.blocks = []  # List of mined blocks
-
-    def mine_block(self, index, transactions, previous_hash, block_time):
-        timestamp = time.time()
-        nonce = 0
-        # Calculate difficulty based on previous block mining time
-        current_block_time = time.time() - block_time  # Assuming timestamp recorded
-        difficulty = calculate_difficulty(target_block_time, current_block_time)
-
-        # Create a new block with the calculated difficulty
-        
-
-        block = Block(index, transactions, timestamp, previous_hash, nonce,self.name)
-        while True:
-            block = Block(index, transactions, timestamp, previous_hash, nonce, self.name)
-            block_hash = block.hash
-            if block_hash.startswith('0'):  # Example difficulty level
-                block.nonce = nonce
-                self.blocks.append(block)
-                return block
-            nonce += 1
-
-class User:
-    def __init__(self, name):
-        self.name = name
-        self.private_key = RSA.generate(2048)
-        self.public_key = self.private_key.publickey()
-        self.wallet = 1000  # Initial balance
-        self.transactions = []
-
-    def create_transaction(self, receiver, text):
-        x = None
-        for user in users:
-            if user.name == receiver:
-                x = user
-            else:
-                x = self.public_key
-        data_to_sign = SHA256.new(str(f"{self.public_key},{x},{text}").encode())
-
-        signer = pkcs1_15.new(self.private_key)
-        signature = signer.sign(data_to_sign)
-        self.signature = signature.hex()
-        transaction = {
-            'sender': self.name,
-            'receiver': receiver,
-            'text': text,
-            'publickey_sender': self.public_key,
-            'publickey_receviver': x.public_key,
-            'hashtext': hashlib.sha256(text.encode()).hexdigest(),
-            'signature': self.signature
-        }
-        self.transactions.append(transaction)
-        x.transactions.append(transaction)
 
 def create_user():
     username = username_entry.get()
@@ -107,36 +25,21 @@ def create_miner():
     status_label_miner.config(text=f"Miner {username} created successfully.")
 
 
-def calculate_difficulty(target_block_time, current_block_time):
-  """
-  Calculates the difficulty based on the desired block time and the actual time taken to mine the previous block.
-
-  Args:
-      target_block_time: The desired time interval between blocks (in seconds).
-      current_block_time: The time taken to mine the previous block (in seconds).
-
-  Returns:
-      An integer representing the difficulty level.
-  """
-
-  # Adjust difficulty based on the ratio of desired vs actual block time
-  difficulty_adjustment = target_block_time / current_block_time
-
-  # Increase difficulty if mining is too fast, decrease if it's too slow
-  if difficulty_adjustment > 1:
-      return min(int(difficulty_adjustment), 255)  # Limit maximum difficulty
-  else:
-      return max(1, int(1 / difficulty_adjustment))
-
 
 def submit_transaction():
     print(miners)
     sender = sender_entry.get()
     receiver = receiver_entry.get()
     text = amount_entry.get()
+    x = None
     for user in users:
         if user.name == sender:
-            user.create_transaction(receiver, text)
+            for rec in users:
+                if rec.name == receiver:
+                    x = rec
+                else:
+                    x = user.public_key
+            user.create_transaction(receiver, text, x)
             status_label.config(text=f"Transaction from {sender} to {receiver} submitted successfully.")
 
 def mine_block():
@@ -153,15 +56,8 @@ def mine_block():
 def write_blocks_to_file(filename):
     with open(filename, 'w') as file:
         for block in blockchain:
-            block_data = {
-                'index': block.index,
-                'transactions': block.transactions,
-                'timestamp': block.timestamp,
-                'previous_hash': block.previous_hash,
-                'nonce': block.nonce
-            }
-            file.write(json.dumps(block_data) + '\n')
-    status_label.config(text=f"Blocks written to file: {filename}")
+            file.write(json.dumps(block.__str__()) + '\n')
+    status_label_miner.config(text=f"Blocks written to file: {filename}")
 
 def read_blocks_from_file(filename):
     blocks = []
@@ -185,7 +81,6 @@ def display_transactions():
 users = []
 miners = []
 blockchain = []
-target_block_time = 10
 transactions = [
 ]
 genesis_block = Block(
