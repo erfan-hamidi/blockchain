@@ -10,7 +10,6 @@ class User:
         self.name = name
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
-        self.wallet = 1000  # Initial balance
         self.transactions = []
 
     def create_transaction(self, receiver, text, x):

@@ -27,8 +27,9 @@ def calculate_difficulty(target_block_time, current_block_time):
 
 
 class Miner:
-    def __init__(self, name):
+    def __init__(self, name, public_key):
         self.name = name
+        self.public_key = public_key
         self.blockchain = []
         self.memory_pool = []
         self.peers = []
@@ -36,9 +37,10 @@ class Miner:
     def mine_block(self, index, transactions, previous_hash, block_time):
         timestamp = time.time()
         nonce = 0
+        delta = 30
         # Calculate difficulty based on previous block mining time
         current_block_time = time.time() - block_time  # Assuming timestamp recorded
-        difficulty = calculate_difficulty(10, current_block_time)
+        difficulty = calculate_difficulty(delta, current_block_time)
 
         # Create a new block with the calculated difficulty
         
@@ -49,7 +51,7 @@ class Miner:
             block_hash = block.hash
             if block_hash.startswith('0'):  # Example difficulty level
                 block.nonce = nonce
-                self.blocks.append(block)
+                self.blockchain.append(block)
                 return block
             nonce += 1
 
@@ -78,7 +80,7 @@ class Miner:
         hash_obj = SHA256.new(message)
 
         # Extract the signature from the transaction
-        signature = transaction['signature']
+        signature = transaction.signature
 
         # Verify the signature using the public key and hash
         try:
@@ -93,10 +95,6 @@ class Miner:
         if 'sender' not in transaction or 'receiver' not in transaction or 'text' not in transaction:
             return False
         
-        # Example: Check if the sender has sufficient balance
-        sender_balance = self.calculate_balance(transaction['sender'])
-        if sender_balance < transaction['text']:
-            return False
 
         # Example: Check if transaction signature is valid
         if not self.verify_signature(transaction):
