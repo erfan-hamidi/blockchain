@@ -38,7 +38,7 @@ def submit_transaction():
                 if rec.name == receiver:
                     x = rec
                 else:
-                    x = user.public_key
+                    x = user
             user.create_transaction(receiver, text, x)
             status_label.config(text=f"Transaction from {sender} to {receiver} submitted successfully.")
 
