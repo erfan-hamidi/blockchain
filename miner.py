@@ -1,5 +1,6 @@
 from Crypto.Hash import SHA256
 from Crypto.Signature import pkcs1_15
+from Crypto.PublicKey import RSA
 import json
 import time
 from block import Block
@@ -27,12 +28,16 @@ def calculate_difficulty(target_block_time, current_block_time):
 
 
 class Miner:
-    def __init__(self, name, public_key):
+    def __init__(self, name, peers, public_key = 0):
         self.name = name
-        self.public_key = public_key
+        if public_key != 0:
+            self.public_key = public_key
+        else:
+            self.private_key = RSA.generate(2048)
+            self.public_key = self.private_key.publickey()
         self.blockchain = []
         self.memory_pool = []
-        self.peers = []
+        self.peers = peers
 
     def mine_block(self, index, transactions, previous_hash, block_time):
         timestamp = time.time()

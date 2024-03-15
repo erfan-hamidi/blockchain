@@ -12,7 +12,7 @@ def create_user():
     username = username_entry.get()
     user = User(username)
     users.append(user)
-    miner = Miner(username, user.public_key)
+    miner = Miner(username, miners, public_key=user.public_key)
     miners.append(miner)
     x = user.public_key.export_key().decode()
     status_label_user.config(text=f"User {username} created successfully.\n\n\nUser public key: \n{x}")
@@ -150,7 +150,9 @@ status_label_miner.grid(row=6, column=0, columnspan=2, padx=5, pady=5)
 # Miner widgets
 miners_label = ttk.Label(input_frame_create_miner, text="Miner:")
 miners_label.grid(row=5, column=0, padx=5, pady=5, sticky="e")
-miner_combobox = ttk.Combobox(input_frame_create_miner, values=[miner.name for miner in miners])
+def updtcblist(self):
+    miner_combobox['values'] = [miner.name for miner in miners]
+miner_combobox = ttk.Combobox(input_frame_create_miner, values=[miner.name for miner in miners], postcommand=updtcblist())
 miner_combobox.grid(row=5, column=1, padx=5, pady=5)
 
 mine_block_button = ttk.Button(input_frame_create_miner, text="Mine Block", command=mine_block)
