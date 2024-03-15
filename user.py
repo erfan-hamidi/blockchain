@@ -14,22 +14,25 @@ class User:
         self.transactions = []
         self.miner = []
 
-    def create_transaction(self, receiver, text, x):
-        data_to_sign = SHA256.new(str(f"{self.public_key},{x},{text}").encode())
-
+    def create_transaction(self, receiver, text, user_rec):
+        data = str(f"{self.public_key.export_key().decode()},{user_rec.public_key.export_key().decode()},{text}").encode()
+        data_to_sign = SHA256.new(data)
         signer = pkcs1_15.new(self.private_key)
         signature = signer.sign(data_to_sign)
-        self.signature = signature.hex()
+        print(self.public_key)
+        v = pkcs1_15.new(self.public_key)
+        v.verify(data_to_sign, signature)
+        self.signature = signature
         transaction = Transaction(
             sender= self.name,
             receiver= receiver,
             text= text,
-            publickey_sender= self.public_key,
-            publickey_receviver= x.public_key,
+            publickey_sender= self.public_key.export_key().decode(),
+            publickey_receviver= user_rec.public_key.export_key().decode(),
             hashtext= hashlib.sha256(text.encode()).hexdigest(),
             signature= self.signature
         )
         self.transactions.append(transaction)
-        x.transactions.append(transaction)
+        user_rec.transactions.append(transaction)
         miner = self.miner[random.randint(0,10)]
         miner.receive_transaction(transaction)

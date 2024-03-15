@@ -15,8 +15,6 @@ class App:
         user = User(username)
         user.miner = self.miners
         self.users.append(user)
-        miner = Miner(username, self.miners, public_key=user.public_key)
-        self.miners.append(miner)
         x = user.public_key.export_key().decode()
         self.status_label_user.config(text=f"User {username} created successfully.\n\n\nUser public key: \n{x}")
 
@@ -45,21 +43,11 @@ class App:
                 user.create_transaction(receiver, text, x)
                 self.status_label.config(text=f"Transaction from {sender} to {receiver} submitted successfully.")
 
-    def mine_block(self):
-        for miner in self.miners:
-            if miner.name == self.miner_combobox.get():
-                index = len(self.blockchain) + 1
-                previous_hash = self.blockchain[-1].hash
-                block_time = self.blockchain[-1].timestamp
-                new_block = miner.mine_block(index, previous_hash, block_time)
-                self.blockchain.append(new_block)
-                self.write_blocks_to_file('blocks.txt')
-                self.status_label_miner.config(text=f"Block mined successfully by {miner.name}.")
-                print(f"Block {new_block.index} mined successfully by {miner.name}.")
 
-    def write_blocks_to_file(filename, self):
+
+    def write_blocks_to_file(self, filename, blockchain):
         with open(filename, 'w') as file:
-            for block in self.blockchain:
+            for block in blockchain:
                 file.write(json.dumps(block.__str__()) + '\n')
         self.status_label_miner.config(text=f"Blocks written to file: {filename}")
 
@@ -84,8 +72,22 @@ class App:
 
     def updatelist(self, event):
             if self.miner_combobox != None:
-                print(self.miners)
                 self.miner_combobox['values'] = [miner.name for miner in self.miners]
+
+    def show_blockchain(self):
+        for miner in self.miners:
+            if miner.name == self.miner_combobox.get():
+                self.tree.delete(*self.tree.get_children())
+                self.write_blocks_to_file(f'{miner.name}blocks.txt', miner.blockchain)
+                for block in miner.blockchain:
+                    self.tree.insert("", "end", text=f"Block {block.index}",
+                             values=(block.index, block.miner, block.transactions, block.timestamp, block.previous_hash, block.hash, block.nonce))
+
+    def stop_miners(self):
+        print('stop')
+        for i in self.miners:
+            i.stop_event()
+
 
     def __init__(self, root):
     # Create instances
@@ -95,23 +97,11 @@ class App:
         for i in range(num_miners):
             miner = Miner(f"Miner {i+1}", self.miners)
             self.miners.append(miner)
-        self.blockchain = []
-        self.transactions = [
-        ]
-        self.genesis_block = Block(
-            index=0,
-            previous_hash="0000000000000000000000000000000000000000000000000000000000000000",
-            transactions=self.transactions,
-            timestamp=time.time(),
-            difficulty=1,  # Adjust difficulty as needed
-            nonce=0,
-            miner='GOD'
-        )
-        self.blockchain.append(self.genesis_block)
-
-
-
-
+        self. miner_thread = []
+        for i in self.miners:
+            i.start()
+        # self.miners[0].start()
+        # self.miners[1].start()
         # Create a notebook (tabbed interface)
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(fill='both', expand=True)
@@ -168,9 +158,11 @@ class App:
         
         self.miner_combobox.grid(row=5, column=1, padx=5, pady=5)
         self.miner_combobox.bind("<<ComboboxSelected>>", self.updatelist)
-        self.mine_block_button = ttk.Button(self.input_frame_create_miner, text="Mine Block", command=self.mine_block)
+        self.mine_block_button = ttk.Button(self.input_frame_create_miner, text="Show Blockchain Miner", command=self.show_blockchain)
         self.mine_block_button.grid(row=5, column=2, padx=5, pady=5)
 
+        self.mine_block_button = ttk.Button(self.input_frame_create_miner, text="Stop Mine", command=self.stop_miners)
+        self.mine_block_button.grid(row=7, column=2, padx=5, pady=5)
 
         # self.Input widgets for submitting transaction
         self.sender_label = ttk.Label(self.output_frame_view_transactions, text="Sender:")
@@ -201,6 +193,28 @@ class App:
         # self.Output widget for displaying status
         self.status_label = ttk.Label(self.output_frame_view_transactions, text="")
         self.status_label.grid(row=6, column=0, columnspan=2, padx=5, pady=5)
+
+        self.tree = ttk.Treeview(self.input_frame_create_miner, columns=("Index", 'Miner', "Transactions", "Timestamp", "Previous Hash", "Hash", "Nonce"))
+        self.tree.heading("#0", text="Block")
+        self.tree.heading("Index", text="Index")
+        self.tree.heading("Miner", text="Miner")
+        self.tree.heading("Transactions", text="Transactions")
+        self.tree.heading("Timestamp", text="Timestamp")
+        self.tree.heading("Previous Hash", text="Previous Hash")
+        self.tree.heading("Hash", text="Hash")
+        self.tree.heading("Nonce", text="Nonce")
+        self.tree.column("#0", width=50)
+        self.tree.column("Index", width=50)
+        self.tree.column("Miner", width=50)
+        self.tree.column("Transactions", width=140)
+        self.tree.column("Timestamp", width=50)
+        self.tree.column("Previous Hash", width=140)
+        self.tree.column("Hash", width=140)
+        self.tree.column("Nonce", width=50)
+
+        self.tree.grid(row=6, column=0, columnspan=2, padx=5, pady=5)
+
+        #self.update_blockchain()
 
 
 

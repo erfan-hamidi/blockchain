@@ -15,11 +15,7 @@ class Transaction:
 
     def __str__(self) -> str:
         return f'''
-            'sender': {self.sender},
-            'receiver': {self.receiver},
-            'text': {self.text},
-            'publickey_sender': {self.publickey_sender},
-            'publickey_receviver': {self.publickey_receviver},
-            'hashtext': {self.hashtext},
-            'signature': {self.signature}
+            'sender': {self.sender}, 'receiver': {self.receiver}, 'text': {self.text}, 'publickey_sender': {self.publickey_sender[0]}, 'publickey_receviver': {self.publickey_receviver[0]}, hashtext': {self.hashtext}, 'signature': {self.signature}
         '''
+    def val_sign(self):
+        return str(f"{self.publickey_sender[0]},{self.publickey_receviver[0]},{self.text}").encode()

@@ -5,6 +5,8 @@ import json
 import time
 import hashlib
 from block import Block
+import threading
+import random
 
 
 def calculate_difficulty(target_block_time, current_block_time):
@@ -24,13 +26,14 @@ def calculate_difficulty(target_block_time, current_block_time):
 
   # Increase difficulty if mining is too fast, decrease if it's too slow
   if difficulty_adjustment > 1:
-      return min(int(difficulty_adjustment), 255)  # Limit maximum difficulty
+      return min(int(difficulty_adjustment), 4)  # Limit maximum difficulty
   else:
       return max(1, int(1 / difficulty_adjustment))
 
 
-class Miner:
+class Miner(threading.Thread):
     def __init__(self, name, peers, public_key = None):
+        super().__init__()
         self.name = name
         if public_key is not None:
             self.public_key = public_key
@@ -40,60 +43,93 @@ class Miner:
         self.blockchain = []
         self.memory_pool = []
         self.peers = peers
+        self.delta = 30
+        self.current_block = None
+        block = Block(
+                index=0,
+                previous_hash="0000000000000000000000000000000000000000000000000000000000000000",
+                transactions="None",
+                timestamp=0,
+                difficulty=1,  # Adjust difficulty as needed
+                nonce=8,
+                miner='GOD'
+                )
+        self.blockchain.append(block)
+        self.stop = False
+        self.not_mine = False
 
-    def mine_block(self, index, previous_hash, block_time):
+    def stop_event(self):
+        self.stop = True
+
+    def run(self):
+        while True:
+            time.sleep(random.randint(5,45))  # Simulate mining time
+            self.current_block = self.mine_block()
+            if not self.not_mine:
+                print(f"{self.name} mined block {self.current_block.index}")
+            
+            if self.stop: break
+
+    def mine_block(self):
+        index = len(self.blockchain) + 1
+        previous_hash = self.blockchain[-1].hash
+        block_time = self.blockchain[-1].timestamp
         timestamp = time.time()
         nonce = 0
-        delta = 30
         # Calculate difficulty based on previous block mining time
         current_block_time = time.time() - block_time  # Assuming timestamp recorded
-        difficulty = calculate_difficulty(delta, current_block_time)
+        if block_time == 0:
+            current_block_time = self.delta - 1
 
+        difficulty = 2
+
+        #print(difficulty)
         # Create a new block with the calculated difficulty
         
-
-        block = Block(index, self.memory_pool, timestamp, previous_hash, nonce, self.name, difficulty)
         while True:
-            block = Block(index, self.memory_pool, timestamp, previous_hash, nonce, self.name, difficulty)
-            block_hash = block.hash
-            if block_hash.startswith('0' * difficulty):  # Example difficulty level
-                block.nonce = nonce
-                self.replace_chain()
+            block = Block(index, self.memory_pool[:], timestamp, previous_hash, nonce, self.name, difficulty)
+            #print(f'hash:{block_hash} nonce: {nonce}')
+            if block.hash.startswith('0' * difficulty):  # Example difficulty level
+                self.gossip_block(block)
+                self.blockchain.append(block)
+                self.not_mine =False
+                self.memory_pool.clear()
                 return block
             nonce += 1
+            if self.not_mine:
+                break
 
     def receive_transaction(self, transaction):
         # Validate transaction
-        if self.validate_transaction(transaction):
-            self.add_transaction_to_memory_pool(transaction)
+        val = self.validate_transaction(transaction)
+        print(f'rev trx:{val},{self.name}')
+        if val and transaction not in self.memory_pool:
+            self.memory_pool.append(transaction)
             self.gossip_transaction(transaction)
 
-    def receive_block(self, block):
-        # Validate block
-        if self.validate_block(block):
-            self.blockchain.append(block)
-            self.memory_pool = [transaction for transaction in self.memory_pool if transaction not in block.transactions]
-            self.gossip_block(block)
+    
 
 
     def verify_signature(self, transaction):
         # Get the public key of the sender
-        sender_public_key = self.transaction.publickey_sender
+        #print(transaction.publickey_sender)
+        sender_public_key = RSA.import_key(transaction.publickey_sender[0])
 
         # Construct the message to be hashed
-        message = json.dumps(transaction, sort_keys=True).encode()
 
         # Calculate the SHA256 hash of the message
-        hash_obj = SHA256.new(message)
+        hash_obj = SHA256.new(transaction.val_sign())
 
         # Extract the signature from the transaction
         signature = transaction.signature
-
+        
+        #pub_key = RSA.importKey(sender_public_key)
+        sign = pkcs1_15.new(sender_public_key)
         # Verify the signature using the public key and hash
         try:
-            pkcs1_15.new(sender_public_key).verify(hash_obj, signature)
+            sign.verify(hash_obj, signature)
             return True  # Signature verification successful
-        except (ValueError, TypeError, pkcs1_15.pkcs1_15Error):
+        except ValueError :
             return False  # Signature verification failed
 
 
@@ -109,14 +145,28 @@ class Miner:
     
     def gossip_transaction(self, transaction):
         for peer in self.peers:
+            if peer.public_key == self.public_key:
+                continue
             peer.receive_transaction(transaction)
 
     def gossip_block(self, block):
         for peer in self.peers:
+            if peer.public_key == self.public_key:
+                continue
             peer.receive_block(block)
 
+    def receive_block(self, block):
+        # Validate block
+        val = self.validate_block(block)
+        print(f'rev:{val},{self.name}')
+        if val and block not in self.blockchain:
+            self.blockchain.append(block)
+            self.not_mine = True
+            self.memory_pool = [transaction for transaction in self.memory_pool if transaction not in block.transactions]
+
     def validate_block(self, block):
-        block_hash = Block.hash
+        
+        block_hash = block.hash
         if not block_hash.startswith('0' * block.difficulty) and block_hash != hashlib.sha256(block.data.encode()).hexdigest():
             return False
 
