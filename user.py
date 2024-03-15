@@ -3,6 +3,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import pkcs1_15
 import hashlib
 from transaction import Transaction
+import random
 
 
 class User:
@@ -11,6 +12,7 @@ class User:
         self.private_key = RSA.generate(2048)
         self.public_key = self.private_key.publickey()
         self.transactions = []
+        self.miner = []
 
     def create_transaction(self, receiver, text, x):
         data_to_sign = SHA256.new(str(f"{self.public_key},{x},{text}").encode())
@@ -29,3 +31,5 @@ class User:
         )
         self.transactions.append(transaction)
         x.transactions.append(transaction)
+        miner = self.miner[random.randint(0,10)]
+        miner.receive_transaction(transaction)

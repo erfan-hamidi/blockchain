@@ -30,9 +30,9 @@ def calculate_difficulty(target_block_time, current_block_time):
 
 
 class Miner:
-    def __init__(self, name, peers, public_key = 0):
+    def __init__(self, name, peers, public_key = None):
         self.name = name
-        if public_key != 0:
+        if public_key is not None:
             self.public_key = public_key
         else:
             self.private_key = RSA.generate(2048)
@@ -41,7 +41,7 @@ class Miner:
         self.memory_pool = []
         self.peers = peers
 
-    def mine_block(self, index, transactions, previous_hash, block_time):
+    def mine_block(self, index, previous_hash, block_time):
         timestamp = time.time()
         nonce = 0
         delta = 30
@@ -52,9 +52,9 @@ class Miner:
         # Create a new block with the calculated difficulty
         
 
-        block = Block(index, transactions, timestamp, previous_hash, nonce,self.name, difficulty)
+        block = Block(index, self.memory_pool, timestamp, previous_hash, nonce, self.name, difficulty)
         while True:
-            block = Block(index, transactions, timestamp, previous_hash, nonce, self.name, difficulty)
+            block = Block(index, self.memory_pool, timestamp, previous_hash, nonce, self.name, difficulty)
             block_hash = block.hash
             if block_hash.startswith('0' * difficulty):  # Example difficulty level
                 block.nonce = nonce
