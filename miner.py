@@ -3,7 +3,9 @@ from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
 import json
 import time
+import hashlib
 from block import Block
+
 
 def calculate_difficulty(target_block_time, current_block_time):
   """
@@ -54,9 +56,9 @@ class Miner:
         while True:
             block = Block(index, transactions, timestamp, previous_hash, nonce, self.name, difficulty)
             block_hash = block.hash
-            if block_hash.startswith('0'):  # Example difficulty level
+            if block_hash.startswith('0' * difficulty):  # Example difficulty level
                 block.nonce = nonce
-                self.blockchain.append(block)
+                self.replace_chain()
                 return block
             nonce += 1
 
@@ -96,15 +98,44 @@ class Miner:
 
 
     def validate_transaction(self, transaction):
-        # Check if required fields are present in the transaction
-        if 'sender' not in transaction or 'receiver' not in transaction or 'text' not in transaction:
-            return False
         
-
         # Example: Check if transaction signature is valid
         if not self.verify_signature(transaction):
             return False
 
         # Additional validation rules can be added here
 
+        return True
+    
+    def gossip_transaction(self, transaction):
+        for peer in self.peers:
+            peer.receive_transaction(transaction)
+
+    def gossip_block(self, block):
+        for peer in self.peers:
+            peer.receive_block(block)
+
+    def validate_block(self, block):
+        block_hash = Block.hash
+        if not block_hash.startswith('0' * block.difficulty) and block_hash != hashlib.sha256(block.data.encode()).hexdigest():
+            return False
+
+        for transaction in block.transactions:
+            if not self.validate_transaction(transaction):
+                return False
+
+        if block.previous_hash != self.blockchain[-1].hash:
+            return False
+
+        return True    
+    
+    def replace_chain(self, new_blockchain):
+        if len(new_blockchain) <= len(self.blockchain):
+            return False
+
+        for block in new_blockchain:
+            if not self.validate_block(block):
+                return False
+
+        self.blockchain = [Block.from_dict(block) for block in new_blockchain]
         return True
