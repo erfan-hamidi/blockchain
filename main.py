@@ -22,6 +22,7 @@ class App:
     def create_miner(self):
         username = self.minername_entry.get()
         miner = Miner(username, self.miners)
+        miner.blockchain = self.miners[0].blockchain[:]
         self.miners.append(miner)
         self.status_label_miner.config(text=f"Miner {username} created successfully.")
 

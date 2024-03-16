@@ -9,13 +9,11 @@ class Transaction:
         self.timestamp = time.time()
         self.publickey_sender = publickey_sender,
         self.publickey_receviver = publickey_receviver,
-        self.hashtext = hashlib.sha256(text.encode()).hexdigest(),
+        self.hashtext = hashtext,
         self.signature = signature
-        self.hashtext = hashtext
 
     def __str__(self) -> str:
-        return f'''
-            'sender': {self.sender}, 'receiver': {self.receiver}, 'text': {self.text}, 'publickey_sender': {self.publickey_sender[0]}, 'publickey_receviver': {self.publickey_receviver[0]}, hashtext': {self.hashtext}, 'signature': {self.signature}
+        return f''''sender': {self.sender}, 'receiver': {self.receiver}, 'text': {self.text}, 'publickey_sender': {self.publickey_sender[0]}, 'publickey_receviver': {self.publickey_receviver[0]}, hashtext': {self.hashtext}, 'signature': {self.signature}
         '''
     def val_sign(self):
         return str(f"{self.publickey_sender[0]},{self.publickey_receviver[0]},{self.text}").encode()

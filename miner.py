@@ -63,12 +63,13 @@ class Miner(threading.Thread):
 
     def run(self):
         while True:
+            if self.stop: break
             time.sleep(random.randint(5,45))  # Simulate mining time
             self.current_block = self.mine_block()
             if not self.not_mine:
                 print(f"{self.name} mined block {self.current_block.index}")
             
-            if self.stop: break
+            
 
     def mine_block(self):
         index = len(self.blockchain) + 1
